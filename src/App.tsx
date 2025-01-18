@@ -8,7 +8,7 @@ import { FieldsConfiguration} from "./Components/fields-config"
 
 function Home() {
   return (
-    <main className="bg-white rounded-lg p-6">
+    <main className="bg-white rounded-lg p-1">
       <Timeline />
       <Controls />
     </main>
@@ -23,16 +23,16 @@ export default function App() {
   return (
     <Router>
       <div className="min-h-screen bg-white p-4">
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6" >
           {/* Header Icons */}
           <div className="flex justify-end space-x-4">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost">
               <Bell className="w-5 h-5 text-yellow-400" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost">
               <Settings className="w-5 h-5 text-purple-500" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost">
               <User className="w-5 h-5 text-blue-400" />
             </Button>
           </div>
