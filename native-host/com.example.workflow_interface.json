@@ -1,0 +1,8 @@
+{
+    "name": "com.example.workflow_interface",
+    "description": "Workflow Interface Native Messaging Host",
+    "path": "./native-host.js",
+    "type": "stdio",
+    "allowed_origins": ["chrome-extension://EasyXL/"]
+  }
+  

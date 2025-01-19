@@ -3,13 +3,30 @@
     "version": "1.0.0",
     "name": "EasyXL",
     "action": {
-        "default_popup": "index.html"
+        "default_popup": "index.html",
+        "default_icon": {
+          "16": "icon16.png",
+          "48": "icon48.png",
+          "128": "icon128.png"
+        }
     },
+    "background": {
+        "service_worker": "../electron/background.js"
+      },
     "permissions": [
-        "scripting"
+        "scripting",
+        "nativeMessaging"
     ],
     "host_permission": [
         "http://*/*",
         "https://*/*"
-    ]
+    ],
+    "icons": {
+        "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png"
+      }
 }
+
+
+  
