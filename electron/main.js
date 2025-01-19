@@ -1,68 +1,73 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
+const WebSocket = require('ws');
 const path = require('path');
-const url = require('url');
 
 let mainWindow;
 
-function createWindow() {
-  // Set the startUrl based on whether the app is in development or production
-  const startUrl =
-    process.env.NODE_ENV !== 'development'
-      ? 'http://127.0.0.1:5173' // Vite dev server URL
-      : url.format({
-          pathname: path.join(__dirname, '../dist/index.html'), // Path to production build
-          protocol: 'file:',
-          slashes: true,
-        });
+// Setup WebSocket server
+const wss = new WebSocket.Server({ port: 8080 });
 
+wss.on('connection', (ws) => {
+  console.log("Client connected to WebSocket");
+
+  ws.on('message', async (message) => {
+    const { action } = JSON.parse(message);
+
+    if (action === 'openFile') {
+      // Open file dialog
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [{ name: 'Excel Files', extensions: ['xlsx', 'xls'] }],
+      });
+
+      if (!result.canceled && result.filePaths.length > 0) {
+        // Send the selected file path back to the client
+        ws.send(JSON.stringify({ filePath: result.filePaths[0] }));
+      } else {
+        ws.send(JSON.stringify({ error: 'No file selected' }));
+      }
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected from WebSocket');
+  });
+});
+
+// Add IPC handler for direct renderer process communication
+ipcMain.handle('open-file-dialog', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [{ name: 'Excel Files', extensions: ['xlsx', 'xls'] }],
+  });
+
+  return result.canceled || result.filePaths.length === 0
+    ? null
+    : result.filePaths[0];
+});
+
+// Create Electron window
+function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'), // Path to preload.js
+      preload: path.join(__dirname, 'preload.js'), // Optional for secure IPC
     },
+    alwaysOnTop: true,  // Keeps the window always on top
+    focusable: true,    // Ensure the window can get focus
   });
 
-  console.log('Electron main process running...');
-
-  // Load the URL based on the environment (dev or prod)
-  mainWindow.loadURL(startUrl);
-
-  // Open DevTools in development mode
-  if (process.env.NODE_ENV !== 'development') {
-    mainWindow.webContents.openDevTools();
-  }
-
-  mainWindow.on('closed', function () {
-    mainWindow = null;
-  });
+  mainWindow.loadURL('http://127.0.0.1:5173'); // Point to your React app
+  mainWindow.focus();  // Focus the window immediately
 }
 
 app.whenReady().then(() => {
   createWindow();
+}); 
 
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
-
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
-});
-
-// Handle file selection dialog
-ipcMain.handle('open-file-dialog', async () => {
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openFile'],
-    filters: [
-      { name: 'Excel Files', extensions: ['xlsx', 'xls'] },
-    ],
-  });
-
-  if (!result.canceled && result.filePaths.length > 0) {
-    return result.filePaths[0];
-  }
-  return null;
 });
