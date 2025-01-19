@@ -3,9 +3,15 @@ import { Folder, FileSpreadsheet, FileText } from "lucide-react";
 import { ActionButton } from "./action-button";
 
 export function Timeline() {
-  const [hoveredStep, setHoveredStep] = useState(null);
+  const [hoveredStep, setHoveredStep] = useState<number | null>(null);
+  const [filePath, setFilePath] = useState<string | undefined>(undefined);
+  const [fileName, setFileName] = useState<string | undefined>(undefined);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleMouseEnter = (step) => {
+  const data = localStorage.getItem('sharedData');
+
+
+  const handleMouseEnter = (step: number) => {
     setHoveredStep(step);
   };
 
@@ -13,26 +19,20 @@ export function Timeline() {
     setHoveredStep(null);
   };
 
-  const [filePath, setFilePath] = useState<string | null>(null);
-
-
-  const handleFileSelect = async () => {
-    console.log(window.electronAPI)
-    if (window.electronAPI && window.electronAPI.openFile) {
-      try {
-        const selectedPath = await window.electronAPI.openFile();
-        if (selectedPath) {
-          setFilePath(selectedPath);
-          console.log(selectedPath);
-          console.log(filePath);
-        }
-      } catch (error) {
-        console.error("Error selecting file:", error);
-      }
-    } else {
-      console.error("Electron API is not available");
-    }
+  const handlePreview = () => {
+    console.log("Preview action triggered");
+    // Handle preview logic
   };
+
+  const handleFileSelect = (selectedPath: string) => {
+    const fileName = new URL(selectedPath).pathname.split('/').pop();
+    console.log(fileName)
+    setFilePath(selectedPath);
+    console.log(fileName)
+    setFileName(fileName);
+    console.log("File path updated in Timeline:", selectedPath);
+  };
+
 
   return (
     <div className="relative py-1">
@@ -50,8 +50,9 @@ export function Timeline() {
             <ActionButton
               icon={<Folder className="w-6 h-6" />}
               label="Connect to File"
-              subtitle=""
-              onClick={handleFileSelect}
+              subtitle={fileName}
+              subtitleClassName="pr-4 mt-4 text-sm text-green-500"
+              onClick={handleFileSelect} // This will trigger the WebSocket connection
               className="transform hover:scale-105 transition duration-300 ease-in-out shadow-md hover:shadow-lg"
             />
           </div>
@@ -65,6 +66,7 @@ export function Timeline() {
             </div>
           </div>
           <div className="w-1/2" />
+          
         </div>
 
         {/* Step 2 */}
@@ -92,6 +94,7 @@ export function Timeline() {
               icon={<FileSpreadsheet className="w-6 h-6" />}
               label="Add fields"
               subtitle=""
+              onClick={handlePreview}
               className="transform hover:scale-105 transition duration-300 ease-in-out shadow-md hover:shadow-lg"
             />
           </div>
@@ -122,6 +125,14 @@ export function Timeline() {
           </div>
           <div className="w-1/2" />
         </div>
+
+{/*         {/* Display selected file path or error message 
+        {filePath && (
+          <div className="mt-4 text-green-500">Selected File: {filePath}</div>
+        )}
+        {errorMessage && (
+          <div className="mt-4 text-red-500">Error: {errorMessage}</div>
+        )} */}
       </div>
     </div>
   );
