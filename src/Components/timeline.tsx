@@ -13,6 +13,27 @@ export function Timeline() {
     setHoveredStep(null);
   };
 
+  const [filePath, setFilePath] = useState<string | null>(null);
+
+
+  const handleFileSelect = async () => {
+    console.log(window.electronAPI)
+    if (window.electronAPI && window.electronAPI.openFile) {
+      try {
+        const selectedPath = await window.electronAPI.openFile();
+        if (selectedPath) {
+          setFilePath(selectedPath);
+          console.log(selectedPath);
+          console.log(filePath);
+        }
+      } catch (error) {
+        console.error("Error selecting file:", error);
+      }
+    } else {
+      console.error("Electron API is not available");
+    }
+  };
+
   return (
     <div className="relative py-1">
       {/* Vertical line */}
@@ -30,6 +51,7 @@ export function Timeline() {
               icon={<Folder className="w-6 h-6" />}
               label="Connect to File"
               subtitle=""
+              onClick={handleFileSelect}
               className="transform hover:scale-105 transition duration-300 ease-in-out shadow-md hover:shadow-lg"
             />
           </div>
